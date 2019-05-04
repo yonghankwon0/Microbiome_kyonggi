@@ -1,0 +1,11 @@
+1. normal vs cancer t.test
+직접 만든 함수로 shannon index를 만들어 normal vs cancer t.test 진행.
+
+2. cancer_m vs cancer_fe t.test
+직접 만든 함수로 shannon index를 만들어 cancer(male) vs cancer(female) t.test 진행.
+
+3. normal_vs_cancer_t.test&willcox.test_(book_ver)_
+vegan package를 이용해서 shannon index를 만들어 normal vs cancer t.test,willcox.test 진행.
+
+4. cancer_m_vs_cancer_f_t.test_willcox.test__book_ver__
+vegan package를 이용해서 shannon index를 만들어 cancer(male) vs cancer(female) t.test,willcox.test 진행.

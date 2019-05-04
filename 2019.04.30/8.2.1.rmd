@@ -1,0 +1,79 @@
+---
+title: "8.2.1"
+author: "Kwon Yonghan"
+date: '2019 4 30 '
+output: html_document
+---
+
+abund_table 부르기.
+```{r}
+abund_table<-read.csv('C:/Users/yongh/Documents/R/R-lab/data/VdrGenusCounts.csv',row.names = 1,check.names=F)
+abund_table<-t(abund_table)
+Grouping<-data.frame(row.names = rownames(abund_table),t(as.data.frame(strsplit(rownames(abund_table),"_"))))
+Grouping$Location<-with(Grouping,ifelse(X3%in%"drySt-28F","Fecal","Cecal"))
+Grouping$Group<-with(Grouping,ifelse(as.factor(X2)%in%c(11,12,13,14,15),c("Vdr-/-"),c("WT")))
+```
+
+각 sample들의 microbiome 합 확인하기.
+```{r}
+apply(abund_table,1,sum)
+```
+
+'vegan' 패키지 부르기.
+```{r}
+library('vegan')
+```
+
+각 sample들의 microbiome 비율 알아보기.
+```{r}
+relative_abund_table<-decostand(abund_table,method='total')
+```
+
+비율이니까 합하면 1인 것을 확인.
+```{r}
+apply(relative_abund_table,1,sum)
+```
+
+비율들의 일부만 확인.
+```{r}
+relative_abund_table[1:16,1:8]
+```
+
+'bacteroides'의 비율 확인.
+```{r}
+bacteroides<-relative_abund_table[,8]
+```
+
+bacteroides와 grouping 묶어 location과 group을 확인한다.
+```{r}
+Fecal_Baecteroides_G<-data.frame(bacteroides=bacteroides,Grouping)
+```
+
+location이 'fecal'인 것만 추려 Fecal_Baecteroides_G에 할당한다.
+```{r}
+(Fecal_Baecteroides_G<-subset(Fecal_Baecteroides_G,Fecal_Baecteroides_G$Location=="Fecal"))
+```
+
+2개의 그룹으로 boxplot을 그린다.
+```{r}
+boxplot(bacteroides~Group,data=Fecal_Baecteroides_G,col=rainbow(2),main="Bacteroides in Vdr WT/KO mice")
+```
+
+```{r}
+library(tidyverse)
+```
+
+ggplot으로 boxplot 그리기.
+```{r}
+ggplot(Fecal_Baecteroides_G,aes(x=Group,y=bacteroides,col=factor(Group)))+
+  geom_boxplot(notch=FALSE)
+ggplot(Fecal_Baecteroides_G,aes(x=Group,y=bacteroides))+
+  geom_boxplot(outlier.colour = 'red',outlier.shape = 8,outlier.size = 4)
+```
+
+wilcox.test 실시.
+```{r}
+fit_w_b <- wilcox.test(bacteroides~Group,data = Fecal_Baecteroides_G)
+fit_w_b
+```
+

@@ -1,0 +1,55 @@
+---
+title: "8.2.2"
+author: "Kwon Yonghan"
+date: '2019 4 30 '
+output: html_document
+---
+
+필요한 데이터 설정.
+```{r}
+abund_table<-read.csv('C:/Users/yongh/Documents/R/R-lab/data/VdrGenusCounts.csv',row.names = 1,check.names=F)
+abund_table<-t(abund_table)
+Grouping<-data.frame(row.names = rownames(abund_table),t(as.data.frame(strsplit(rownames(abund_table),"_"))))
+Grouping$Location<-with(Grouping,ifelse(X3%in%"drySt-28F","Fecal","Cecal"))
+Grouping$Group<-with(Grouping,ifelse(as.factor(X2)%in%c(11,12,13,14,15),c("Vdr-/-"),c("WT")))
+```
+
+
+Parabacteroides만 추출.
+```{r}
+(Parabacteroides<-abund_table[,27])
+```
+
+Parabacteroides_G 생성.
+```{r}
+(Parabacteroides_G<-cbind(Parabacteroides,Grouping))
+rownames(Parabacteroides_G)<-NULL
+Parabacteroides_G
+```
+
+그 중에서 'Cecal'인 것들만 추출
+```{r}
+Cecal_Parabacteroides_G<-subset(Parabacteroides_G,Location=="Cecal")
+Cecal_Parabacteroides_G
+```
+
+Parabacteroides>0인 것들은 'present' 아닌 것들은 'absent라고 달아준다.
+```{r}
+Cecal_Parabacteroides_G$Present<-ifelse((Cecal_Parabacteroides_G$Parabacteroides>0),
+                                        "Present","Absent")
+Cecal_Parabacteroides_G
+```
+
+table을 만들어 chisq.test 진행. 유의하지 않다는 것을 알 수 있다.
+```{r}
+library(MASS)
+tbl<-table(Cecal_Parabacteroides_G$Group,Cecal_Parabacteroides_G$Present)
+tbl
+chisq.test(tbl)
+```
+
+갯수가 모질라(<5) chisq.test는 부정확할 수 있음. 그래서 fisher.test를 진행. 역시 유의 하지 않음.
+```{r}
+fisher.test(tbl)
+```
+

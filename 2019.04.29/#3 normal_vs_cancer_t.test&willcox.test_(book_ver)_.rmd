@@ -1,0 +1,52 @@
+---
+title: "normal_vs_cancer_t.test_&_wilcox.test_(book_ver)"
+author: "Kwon Yonghan"
+date: '2019 4 29 '
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r}
+#데이터 부르기
+meta<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_Metadata.txt')
+otu<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_OTU_table.txt')
+```
+
+```{r}
+#shannon index 만들기 위한 데이터 생성
+otu_1<-otu[,5:length(otu)-1]
+```
+
+```{r}
+#cancer, normal data로 분류
+otu_1_cancer<-otu_1[which(meta$dx=="cancer"),]
+otu_1_normal<-otu_1[which(meta$dx=="normal"),]
+```
+
+```{r}
+#shannon index 만들기
+library(vegan)
+H_cancer<-diversity(otu_1_cancer,"shannon")
+H_normal<-diversity(otu_1_normal,"shannon")
+```
+
+```{r}
+#histogram으로 비교
+par(mfrow=c(2,1))
+hist(H_cancer,xlim=c(1.5,5))
+abline(v=mean(H_cancer),col='red')
+hist(H_normal,xlim=c(1.5,5))
+abline(v=mean(H_normal),col='red')
+```
+
+```{r}
+H_cancer<-diversity(otu_1_cancer,"shannon")
+H_normal<-diversity(otu_1_normal,"shannon")
+t.test(H_cancer,H_normal)
+```
+
+```{r}
+#wilcox.test
+wilcox.test(H_cancer,H_normal)
+```
+
