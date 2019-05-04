@@ -1,11 +1,13 @@
 1. normal vs cancer t.test
-Á÷Á¢ ¸¸µç ÇÔ¼ö·Î shannon index¸¦ ¸¸µé¾î normal vs cancer t.test ÁøÇà.
+ì§ì ‘ ë§Œë“  í•¨ìˆ˜ë¡œ shannon indexë¥¼ ë§Œë“¤ì–´ normal vs cancer t.test ì§„í–‰.
 
 2. cancer_m vs cancer_fe t.test
-Á÷Á¢ ¸¸µç ÇÔ¼ö·Î shannon index¸¦ ¸¸µé¾î cancer(male) vs cancer(female) t.test ÁøÇà.
+ì§ì ‘ ë§Œë“  í•¨ìˆ˜ë¡œ shannon indexë¥¼ ë§Œë“¤ì–´ cancer(male) vs cancer(female) t.test ì§„í–‰.
 
 3. normal_vs_cancer_t.test&willcox.test_(book_ver)_
-vegan package¸¦ ÀÌ¿ëÇØ¼­ shannon index¸¦ ¸¸µé¾î normal vs cancer t.test,willcox.test ÁøÇà.
+vegan packageë¥¼ ì´ìš©í•´ì„œ shannon indexë¥¼ ë§Œë“¤ì–´ normal vs cancer t.test,willcox.test ì§„í–‰.
 
 4. cancer_m_vs_cancer_f_t.test_willcox.test__book_ver__
-vegan package¸¦ ÀÌ¿ëÇØ¼­ shannon index¸¦ ¸¸µé¾î cancer(male) vs cancer(female) t.test,willcox.test ÁøÇà.
+vegan packageë¥¼ ì´ìš©í•´ì„œ shannon indexë¥¼ ë§Œë“¤ì–´ cancer(male) vs cancer(female) t.test,willcox.test ì§„í–‰.
+
+* html íŒŒì¼ì„ ì½ê³  ì‹¶ìœ¼ë©´ http://htmlpreview.github.io/ë¥¼ ì´ìš©í•´ì„œ ì½ìœ¼ë©´ ë¨.
