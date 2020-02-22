@@ -1,0 +1,56 @@
+---
+title: "cancer_M vs cancer_Fe t.test"
+author: "Kwon Yonghan"
+date: '2019 4 29 '
+output: html_document
+---
+```{r}
+#메타데이터 부르기
+meta<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_Metadata.txt')
+#otu데이터 부르기
+otu<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_OTU_table.txt')
+```
+
+```{r}
+#shannon index 만들기 위한 데이터 생성
+otu_1<-otu[,5:length(otu)-1]
+```
+
+```{r}
+#암일 경우에 성별 구분해서 데이터 생성
+otu_cancer_male<-otu_1[which(meta$Gender=="m" & meta$dx=='cancer'),]
+otu_cancer_female<-otu_1[which(meta$Gender=="f" & meta$dx=='cancer'),]
+```
+
+```{r}
+#계산을 위한 함수 생성
+function5<-function(a){
+  pi<-otu_cancer_male[a,]/as.numeric(apply(otu_cancer_male,1,sum))[a]
+  print(-1*sum(pi*log(pi),na.rm=T))
+}
+function6<-function(b){
+  pi<-otu_cancer_female[b,]/as.numeric(apply(otu_cancer_female,1,sum))[b]
+  print(-1*sum(pi*log(pi),na.rm=T))
+}
+```
+
+```{r}
+#계산
+cancer_M<-c()
+cancer_Fe<-c()
+
+for(i in seq(1,dim(otu_cancer_male)[1],by=1)){
+  cancer_M[i]<-function5(i)
+}
+for(i in seq(1,dim(otu_cancer_female)[1],by=1)){
+  cancer_Fe[i]<-function6(i)
+}
+
+
+```
+
+```{r}
+#t.test
+t.test(cancer_M,cancer_Fe)
+```
+
