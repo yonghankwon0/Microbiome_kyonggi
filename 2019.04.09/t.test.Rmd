@@ -1,0 +1,78 @@
+---
+title: "normal vs cancer t.test"
+author: "Kwon Yonghan"
+date: "2019년 4월 9일"
+output: html_document
+---
+
+```{r}
+#메타데이터 부르기
+meta<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_Metadata.txt')
+```
+
+```{r}
+#데이터 확인
+str(meta)
+```
+
+```{r}
+#데이터 분류
+meta_cancer<-subset(meta,dx=="cancer")
+meta_normal<-subset(meta,dx=="normal")
+```
+
+```{r}
+#otu데이터 부르기
+otu<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_OTU_table.txt')
+```
+
+```{r}
+#데이터 순서 비교
+meta$sample==otu$Group
+```
+
+```{r}
+#shannon index 만들기 위한 데이터 생성
+otu_1<-otu[,5:length(otu)-1]
+```
+
+```{r}
+#메타 데이터에서 찾은 cancer,normal을 otu에서 분류
+otu_1_cancer<-otu_1[which(meta$dx=="cancer"),]
+otu_1_normal<-otu_1[which(meta$dx=="normal"),]
+```
+
+```{r}
+#shannon index 계산 함수 만들기
+function1<-function(a){
+  pi<-otu_1_cancer[a,]/as.numeric(apply(otu_1_cancer,1,sum))[a]
+  print(-1*sum(pi*log(pi),na.rm=T))
+}
+function2<-function(b){
+  pi<-otu_1_normal[b,]/as.numeric(apply(otu_1_normal,1,sum))[b]
+  print(-1*sum(pi*log(pi),na.rm=T))
+}
+```
+
+```{r}
+#계산하고 나온 값을 저장할 변수 생성
+A<-c()
+B<-c()
+```
+
+```{r}
+#계산
+for(i in seq(1,dim(otu_1_cancer)[1],by=1)){
+  A[i]<-function1(i)
+}
+
+for(i in seq(1,dim(otu_1_normal)[1],by=1)){
+  B[i]<-function2(i)
+}
+```
+
+```{r}
+#t.test 실행
+t.test(A,B)
+```
+

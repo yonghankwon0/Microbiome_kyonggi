@@ -1,0 +1,48 @@
+---
+title: "cancer_m vs cancer_f t.test & willcox.test"
+author: "Kwon Yonghan"
+date: '2019 4 29 '
+output: html_document
+---
+```{r}
+#데이터 부르기
+meta<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_Metadata.txt')
+otu<-read.delim('C:/Users/yongh/Documents/R/R-lab/2019.03.26/Baxter_OTU_table.txt')
+```
+
+```{r}
+#shannon index 만들기 위한 데이터 생성
+otu_1<-otu[,5:length(otu)-1]
+```
+
+```{r}
+#cancer male, cancer female data로 분류
+otu_1_cancer_m<-otu_1[which(meta$dx=="cancer" & meta$Gender=="m"),]
+otu_1_cancer_f<-otu_1[which(meta$dx=="cancer" & meta$Gender=="f"),]
+```
+
+```{r}
+#shannon index 만들기
+library(vegan)
+H_cancer_m<-diversity(otu_1_cancer_m,"shannon")
+H_cancer_f<-diversity(otu_1_cancer_f,"shannon")
+```
+
+```{r}
+#histogram으로 비교
+par(mfrow=c(2,1))
+hist(H_cancer_m,xlim=c(1.5,5))
+abline(v=mean(H_cancer_m),col='red')
+hist(H_cancer_f,xlim=c(1.5,5))
+abline(v=mean(H_cancer_f),col='red')
+```
+
+```{r}
+#t.test
+t.test(H_cancer_m,H_cancer_f)
+```
+
+```{r}
+#wilcox.test
+wilcox.test(H_cancer_m,H_cancer_f)
+```

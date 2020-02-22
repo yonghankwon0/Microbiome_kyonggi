@@ -1,0 +1,170 @@
+---
+title: '8.4'
+author: "Kwon Yonghan"
+date: '2019 5 28 '
+output: html_document
+---
+# 8.4.2 Compare Diversities Among Groups
+<br>
+데이터 부르기
+```{r}
+abund_table<-read.csv('C:/Users/yongh/Documents/R/R-lab/data/VdrGenusCounts.csv',row.names = 1,check.names=F)
+abund_table<-t(abund_table)
+Grouping<-data.frame(row.names = rownames(abund_table),t(as.data.frame(strsplit(rownames(abund_table),"_"))))
+Grouping$Location<-with(Grouping,ifelse(X3%in%"drySt-28F","Fecal","Cecal"))
+Grouping$Group<-with(Grouping,ifelse(as.factor(X2)%in%c(11,12,13,14,15),c("Vdr-/-"),c("WT")))
+library(vegan)
+CH<-estimateR(abund_table)[2,]
+df_CH<-data.frame(sample=names(CH),value=CH,measure=rep("Chaol",length(CH)))
+df_CH_G<-cbind(df_CH,Grouping)
+rownames(df_CH_G)<-NULL
+df_CH_G$Group4<-with(df_CH_G,interaction(Location,Group))
+df_CH_G
+```
+<br>
+
+데이터 준비
+```{r}
+#Vdr-/- mouse data
+library(dplyr)
+data<-mutate(df_CH_G,Group=factor(df_CH_G$Group4,levels=unique(df_CH_G$Group4)))
+```
+<br>
+
+Obtain Descriptive Statistics
+```{r}
+library(FSA)
+Summarize(value~Group4,data=df_CH_G)
+```
+<br>
+
+
+Generate Histogram by Group
+```{r}
+#Individual plots in panel of 2 columns and 2 rows
+library(lattice)
+histogram(~value|Group4, data=df_CH_G,layout=c(2,2))
+```
+<br>
+
+
+Kruskal wallis test of Chao 1 richness
+```{r}
+kruskal.test(value~Group4,data = df_CH_G)
+qchisq(0.95,3)
+library("DescTools")
+#Tukey method for adjusting p-values
+Test_N <- NemenyiTest(x=df_CH_G$value,g=df_CH_G$Group4,dist="tukey")
+Test_N
+```
+<br>
+
+
+Dunn Test for Multiple Comparisons
+```{r}
+Test_N<-dunnTest(df_CH_G$value~df_CH_G$Group4,data=df_CH_G,method="bh")
+Test_N
+```
+<br>
+
+
+# 8.4.3 Find Significant Taxa Among Groups
+<br>
+
+fecal과 cecal에서 Vdr-/-, WT 쥐를 비교해 눈에띄는 taxa 차이가 있는지 확인하자.
+<br>
+
+log 정규화
+```{r}
+data<-log((abund_table+1)/(rowSums(abund_table)+dim(abund_table)[2]))
+df<-as.data.frame(data)
+kruskal.test(df[,1],g=df_CH_G$Group4)
+```
+<br>
+
+
+taxa 비율 정규화
+```{r}
+df<-as.data.frame(abund_table/rowSums(abund_table))
+```
+<br>
+
+
+248개 각각의 박테리아의 kruskal.test() 진행
+```{r results='hide'}
+KW_table<-data.frame()
+for(i in 1:dim(df)[2]){
+  KW_test<-kruskal.test(df[,i],g=df_CH_G$Group4)
+  KW_table<-rbind(KW_table,
+                  data.frame(id=names(df)[i],p.value=KW_test$p.value))
+  cat(paste("Kruskal-Wallis test for",names(df)," ",i,"/",dim(df)[2],"; p-value",KW_test$p.value,
+            "\n",sep=""))
+}
+```
+
+
+```{r}
+head(KW_table)
+```
+
+# 8.4.4 Multiple Testing and E-value, FWER and FDR
+## 8.4.4.1 E-value
+E-value는 multiple test를 시행했을 때 우연한 false positive(1종 오류)의 기댓값이다.<br>
+E-value = p-value * the number of test.<br>
+E-value의 기준 보정은 명목상의 p-value보다 test에서의 p-value라는 것을 알고 있어라. <br>
+E-value가 p-value를 시험의 갯수를 곱하는거니까 1보다 클 수 있다.<br>
+```{r}
+KW_table$E.value<-KW_table$p.value*dim(KW_table)[1]
+KW_table$E.value
+head(KW_table)
+```
+<br>
+
+## 8.4.4.2 FWER
+
+FWER는 false postive(type 1 error)를 만들 확률을 의미한다.<br>
+다른말로 하면 영가설을 기각하지 못 할 확률을 의미한다.<br>
+H_0 : multiple test를 진행 했을 때 group간의 차이가 없다.<br>
+FWER = 1-(1-p-value)^T, T = number of test
+```{r}
+KW_table$FWER<-pbinom(q=0,p=KW_table$ p.value,size=dim(KW_table)[1],
+                      lower.tail = F)
+```
+<br>
+
+## 8.4.4.3 FDR
+
+FDR = 잘못된 기각/모든 기각 <br>
+Benjamini_hochberg correction은 다음과 같은 순서를 따른다. <br>
+1. p-value를 작은 것에서부터 rank를 매긴다. <br>
+```{r}
+KW_table<-KW_table[order(KW_table$p.value,decreasing = F),]
+head(KW_table)
+```
+<br>
+q-value = p-value * T/k<br>
+```{r}
+KW_table$q.value.factor<-dim(KW_table)[1]/1:dim(KW_table)[1]
+head(KW_table$q.value.factor)
+
+KW_table$q.value<-KW_table$p.value*KW_table$q.value.factor
+head(KW_table$q.value)
+
+head(KW_table)
+```
+<br>
+특정한 alpha 보다 낮은 것이 있는지 확인.<br>
+지금은 없다.<br>
+```{r}
+KW_alpha=0.05
+last.significant.item<-max(which(KW_table$q.value<=KW_alpha))
+last.significant.item
+
+selected<-1:5
+print(KW_table[selected,])
+
+diff.taxa.factor<-KW_table$id[selected]
+diff.taxa<-as.vector(diff.taxa.factor)
+diff.taxa
+```
+

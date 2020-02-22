@@ -1,0 +1,60 @@
+---
+title: "8.4.4"
+author: "Kwon Yonghan"
+date: '2019 6 18 '
+output: html_document
+---
+E-value는 multiple test를 시행했을 때 우연한 false positive(1종 오류)의 기댓값이다.<br>
+E-value = p-value * the number of test.<br>
+E-value의 기준 보정은 명목상의 p-value보다 test에서의 p-value라는 것을 알고 있어라. <br>
+E-value가 p-value를 시험의 갯수를 곱하는거니까 1보다 클 수 있다.<br>
+```{r}
+KW_table$E.value<-KW_table$p.value*dim(KW_table)[1]
+KW_table$E.value
+head(KW_table)
+```
+
+FWER는 false postive(type 1 error)를 만들 확률을 의미한다.<br>
+다른말로 하면 영가설을 기각하지 못 할 확률을 의미한다.<br>
+H_0 : multiple test를 진행 했을 때 group간의 차이가 없다.<br>
+FWER = 1-(1-p-value)^T, T = number of test
+```{r}
+KW_table$FWER<-pbinom(q=0,p=KW_table$ p.value,size=dim(KW_table)[1],
+                      lower.tail = F)
+KW_table
+```
+
+FDR = 잘못된 기각/모든 기각 <br>
+Benjamini_hochberg correction은 다음과 같은 순서를 따른다. <br>
+1. p-value를 작은 것에서부터 rank를 매긴다. <br>
+```{r}
+KW_table<-KW_table[order(KW_table$p.value,decreasing = F),]
+head(KW_table)
+```
+
+q-value = p-value * T/k
+```{r}
+KW_table$q.value.factor<-dim(KW_table)[1]/1:dim(KW_table)[1]
+head(KW_table$q.value.factor)
+
+KW_table$q.value<-KW_table$p.value*KW_table$q.value.factor
+head(KW_table$q.value)
+
+head(KW_table)
+```
+
+특정한 alpha 보다 낮은 것이 있는지 확인.<br>
+지금은 없다.
+```{r}
+KW_alpha=0.05
+last.significant.item<-max(which(KW_table$q.value<=KW_alpha))
+last.significant.item
+
+selected<-1:5
+print(KW_table[selected,])
+
+diff.taxa.factor<-KW_table$id[selected]
+diff.taxa<-as.vector(diff.taxa.factor)
+diff.taxa
+```
+

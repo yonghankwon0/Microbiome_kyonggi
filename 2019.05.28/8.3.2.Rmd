@@ -1,0 +1,62 @@
+---
+title: "8.3.2 Pairwise and Tukey Multiple Comparisons"
+author: "Kwon Yonghan"
+date: '2019 5 28 '
+output: html_document
+---
+## 데이터 부르기
+```{r}
+abund_table<-read.csv('C:/Users/yongh/Documents/R/R-lab/data/VdrGenusCounts.csv',row.names = 1,check.names=F)
+abund_table<-t(abund_table)
+Grouping<-data.frame(row.names = rownames(abund_table),t(as.data.frame(strsplit(rownames(abund_table),"_"))))
+Grouping$Location<-with(Grouping,ifelse(X3%in%"drySt-28F","Fecal","Cecal"))
+Grouping$Group<-with(Grouping,ifelse(as.factor(X2)%in%c(11,12,13,14,15),c("Vdr-/-"),c("WT")))
+library(vegan)
+CH<-estimateR(abund_table)[2,]
+df_CH<-data.frame(sample=names(CH),value=CH,measure=rep("Chaol",length(CH)))
+df_CH_G<-cbind(df_CH,Grouping)
+rownames(df_CH_G)<-NULL
+df_CH_G
+```
+<br>
+
+# group4(Location + Group)에 대한 새로운 변수 생성
+```{r}
+df_CH_G$Group4<-with(df_CH_G,interaction(Location,Group))
+df_CH_G
+```
+
+```{r}
+#Pairwis tests of mean differences
+pairwise.t.test(df_CH_G$value,df_CH_G$Group4,p.adjust='none',pool.sd = T)
+```
+
+
+```{r}
+#conservative Bonferroni adjustment
+pairwise.t.test(df_CH_G$value,df_CH_G$Group4,p.adjust="bonferroni",pool.sd = T)
+```
+
+
+```{r}
+#Holm method
+pairwise.t.test(df_CH_G$value,df_CH_G$Group4,p.adjust="holm",pool.sd=T)
+```
+
+
+```{r}
+#Benjamini & Hochberg(BH)
+pairwise.t.test(df_CH_G$value,df_CH_G$Group4,p.adjust="BH",pool.sd=T)
+```
+
+
+```{r}
+#Benjamini & Yekutieli
+pairwise.t.test(df_CH_G$value,df_CH_G$Group4,p.adjust="BY",pool.sd=T)
+```
+
+## Tukey multiple comparisons of means
+```{r}
+TukeyHSD(aov_fit,conf.level = 0.95)
+plot(TukeyHSD(aov(df_CH_G$value~df_CH_G$Group4),conf.level = 0.95))
+```
